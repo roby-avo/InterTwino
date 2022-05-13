@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  web:
+    build:
+      context: .
+      args: 
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    ports:
+      - "8000:5000"
+    environment:
+      FLASK_DEBUG: 1
+      FLASK_APP: ./app.py
+    volumes:
+      - ./app.py:/app.py  
+      
+  mongo:
+    image: "mongo:${MONGO_VERSION}"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
