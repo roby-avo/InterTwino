@@ -23,16 +23,16 @@ api = Api(app)
     responses={200: "OK", 404: "Not found",
                400: "Bad request", 403: "Invalid token"},
     params={
-        "name": "Name to look for search an address"
+        "address": "Name to look for lookup an address"
     },
     description='With this API endpoint you can search for addresses by entering a query string corresponding to the address name.',
 )
 class GeolocateAddress(Resource):
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, help='variable 1', location='args')
+        parser.add_argument('address', type=str, help='variable 1', location='args')
         args = parser.parse_args()
-        name = args["name"]
+        name = args["address"]
         response = geocoder_api.free_form(name)
         results = response.as_dict()
         geo_obj_debug = {} 
@@ -62,8 +62,8 @@ class GeolocateAddress(Resource):
     responses={200: "OK", 404: "Not found",
                400: "Bad request", 403: "Invalid token"},
     params={
-        "pointA": "Geocoords of point A",
-        "pointB": "Geocoords of point B"
+        "pointA": "Geocoords of point A (using oder lat,lng separeted to comma for e.g. 23.338,42.864 )",
+        "pointB": "Geocoords of point B (using order lat,lng separated to comma for e.g.  23.496,42.859)"
     },
     description='Compute path from point A to point B in pedestrian mode',
 )
