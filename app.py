@@ -25,7 +25,7 @@ api = Api(app)
     params={
         "address": "Name to look for lookup an address"
     },
-    description='With this API endpoint you can search for addresses by entering a query string corresponding to the address name.',
+    description='With this API endpoint you can search for addresses by entering a query string corresponding to the address name.'
 )
 class GeolocateAddress(Resource):
     def get(self):
@@ -62,8 +62,8 @@ class GeolocateAddress(Resource):
     responses={200: "OK", 404: "Not found",
                400: "Bad request", 403: "Invalid token"},
     params={
-        "pointA": "Geocoords of point A (using oder lat,lng separeted to comma for e.g. 23.338,42.864 )",
-        "pointB": "Geocoords of point B (using order lat,lng separated to comma for e.g.  23.496,42.859)"
+        "pointA": "Geocoords of point A (use oder lat,lng separeted to comma for e.g. 23.338,42.864 )",
+        "pointB": "Geocoords of point B (use order lat,lng separated to comma for e.g.  23.496,42.859)"
     },
     description='Compute path from point A to point B in pedestrian mode',
 )
