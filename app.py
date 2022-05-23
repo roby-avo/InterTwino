@@ -57,13 +57,14 @@ class GeolocateAddress(Resource):
 
 
 
+
 @api.route('/route')
 @api.doc(
     responses={200: "OK", 404: "Not found",
                400: "Bad request", 403: "Invalid token"},
     params={
-        "pointA": "Geocoords of point A (use oder lat,lng separeted to comma for e.g. 42.864,23.338 )",
-        "pointB": "Geocoords of point B (use order lat,lng separated to comma for e.g.  42.859,23.496)"
+        "pointA": "Geocoords of point A (use oder lat,lng separeted to comma for e.g. 42.69324,23.38045)",
+        "pointB": "Geocoords of point B (use order lat,lng separated to comma for e.g.  42.70211,23.33198)"
     },
     description='Compute path from point A to point B in pedestrian mode',
 )
