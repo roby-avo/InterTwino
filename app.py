@@ -44,7 +44,7 @@ class GeolocateAddress(Resource):
         args = parser.parse_args()
         name = args["address"]
         token = args["token"]
-        if (not validate_token(token)):
+        if not validate_token(token):
             return {"Error": "Invalid Token"}, 403
         try:    
             response = geocoder_api.free_form(name)
@@ -92,7 +92,7 @@ class Routing(Resource):
         pointA = args["pointA"]
         pointB = args["pointB"]
         token = args["token"]
-        if (not validate_token(token)):
+        if not validate_token(token):
             return {"Error": "Invalid Token"}, 403
         query = {
             "transportMode": "pedestrian", 
