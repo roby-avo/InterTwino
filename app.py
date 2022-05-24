@@ -31,7 +31,6 @@ def validate_token(token):
         "address": "Name to look for lookup an address",
         "token": "token api key"
     },
-    headers = {"api-key": "api key of"},
     description="""With this API endpoint you can search for addresses by entering a query string corresponding to the address 
                 (for e.g. гр. София, УЛ.ВЛАДИМИР МИНКОВ-ЛОТКОВ бл./№ 023.)
                 """
@@ -78,7 +77,8 @@ class GeolocateAddress(Resource):
                400: "Bad request", 403: "Invalid token"},
     params={
         "pointA": "Geocoords of point A (use oder lat,lng separeted to comma for e.g. 42.68843,23.37989)",
-        "pointB": "Geocoords of point B (use order lat,lng separated to comma for e.g.  42.70211,23.33198)"
+        "pointB": "Geocoords of point B (use order lat,lng separated to comma for e.g.  42.70211,23.33198)",
+        "token": "token api key"
     },
     description='Compute path from point A to point B in pedestrian mode',
 )
