@@ -1,3 +1,5 @@
+from cgitb import reset
+from unittest import result
 from flask import Flask, request
 from flask_restx import Api, Resource, reqparse, fields
 from herepy import GeocoderApi
@@ -38,9 +40,14 @@ def validate_token(token):
     return token == API_TOKEN
     
 
-def get_address(address):
+def get_address_data(address):
     address = address.lower()
     result = address_cache.find_one({"address": address})
+    return result
+
+
+def get_route_data(origin, destination):
+    result = route_cache.find_one({"origin": origin, "destination": destination})
     return result
 
 
@@ -66,15 +73,12 @@ address_list_fields = api.model('AddressList', {
 class GeolocateAddress(Resource):
 
     def lookup_address(self, address):
-        try:    
-            response = geocoder_api.free_form(address)
-            results = response.as_dict()
-            address_cache.insert_one({
-                "address": address.lower(),
-                "items": results["items"]
-            })
-        except Exception as e:
-            return {"Error": str(e)}, 400
+        response = geocoder_api.free_form(address)
+        results = response.as_dict()
+        address_cache.insert_one({
+            "address": address.lower(),
+            "items": results["items"]
+        })
         return results
     
     def init_geo_obj_debug(self):
@@ -116,15 +120,18 @@ class GeolocateAddress(Resource):
         token = args["token"]
         if not validate_token(token):
             return {"Error": "Invalid Token"}, 403
-        result = get_address(name)
-        if result is None:    
-            result = self.lookup_address(name)
-        else:
-            result = result["items"]    
+        result = get_address_data(name)
+        if result is None:  
+            try:  
+                result = self.lookup_address(name)
+            except Exception as e:
+                return {"Error": str(e)}, 400
+        out = {}    
+        out["items"] = result["items"]    
         geo_obj_debug = self.init_geo_obj_debug()
-        self.populate_debug(result, geo_obj_debug)
-        result["debug"] = geo_obj_debug
-        return result    
+        self.populate_debug(out, geo_obj_debug)
+        out["debug"] = geo_obj_debug
+        return out    
 
 
     @api.doc(
@@ -144,10 +151,15 @@ class GeolocateAddress(Resource):
         try:
             addresses = request.get_json()['json']
         except:
-            return {"Error": "Invalid Token"}, 400
+            return {"Error": "Invalid Json"}, 400
         geo_obj_debug = self.init_geo_obj_debug()      
         for address in addresses:
-            result = self.lookup_address(address["address"])
+            result = get_address_data(address["address"])
+            if result is None:
+                try:
+                    result = self.lookup_address(address["address"])
+                except Exception as e:   
+                    return {"Error": str(e)}, 400 
             address["items"] = result["items"]
             self.populate_debug(result, geo_obj_debug)
         out = {
@@ -166,7 +178,8 @@ routes_list_fields = api.model('RouteList', {
     'json': fields.List(
         fields.Nested(routes_fields), 
         example=[
-            {"origin": [42.68843, 23.37989], "destination": [42.70211, 23.33198]}
+            {"origin": [42.68843, 23.37989], "destination": [42.70211, 23.33198]},
+            {"origin": [42.68840, 23.37990], "destination": [42.70212, 23.33190]}
         ])
 })
 
@@ -189,12 +202,15 @@ class Routing(Resource):
             "return": "summary", 
             "apiKey": HERE_API_KEY
         }
-        try:
-            result = requests.get("https://router.hereapi.com/v8/routes", params=query)
-        except Exception as e:   
-            return {"Error": str(e)}, 400 
+        result = requests.get("https://router.hereapi.com/v8/routes", params=query)
+        result = result.json()
+        route_cache.insert_one({
+            "origin": origin,
+            "destination": destination,
+            "routes": result["routes"]
+        })
         
-        return result.json()    
+        return result  
 
     @api.doc(
         params={
@@ -214,26 +230,43 @@ class Routing(Resource):
         token = args["token"]
         if not validate_token(token):
             return {"Error": "Invalid Token"}, 403
-        query = {
-            "transportMode": "pedestrian", 
-            "origin": pointA, 
-            "destination": pointB, 
-            "return": "summary", 
-            "apiKey": HERE_API_KEY
-        }
-        try:
-            result = requests.get("https://router.hereapi.com/v8/routes", params=query)
-        except Exception as e:   
-            return {"Error": str(e)}, 400 
-        return result.json()
+        result = get_route_data(pointA, pointB) 
+        if result is None:   
+            try:
+                result = self.get_route(pointA, pointB)
+            except Exception as e:   
+                return {"Error": str(e)}, 400 
+        out = {}
+        out["routes"] = result["routes"]    
+        return out
 
     @api.doc(
         body=routes_list_fields,
-        description='Compute path from point A to point B in pedestrian mode'
+        description='Compute path for each object in the list the route from source to destination in pedestrian mode'
     )
     def post(self):
-        pass
+        parser = reqparse.RequestParser()
+        parser.add_argument('token', type=str, help='variable 1', location='args')
+        args = parser.parse_args()
+        token = args["token"]
+        if not validate_token(token):
+            return {"Error": "Invalid Token"}, 403
+        try:
+            routes = request.get_json()['json']
+        except:
+            return {"Error": "Invalid Json"}, 400
 
+        for route in routes:
+            origin, destination = (",".join([str(p) for p in route["origin"]]), ",".join([str(p) for p in route["destination"]]))
+            result = get_route_data(origin, destination)
+            if result is None:
+                try:
+                    result = self.get_route(origin, destination)
+                except Exception as e:   
+                    return {"Error": str(e)}, 400 
+            route["routes"] = result["routes"]
+       
+        return routes
 
 if __name__ == '__main__':
     app.run(debug=True)
