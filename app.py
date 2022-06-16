@@ -1,5 +1,3 @@
-from cgitb import reset
-from unittest import result
 from flask import Flask, request
 from flask_restx import Api, Resource, reqparse, fields
 from herepy import GeocoderApi
