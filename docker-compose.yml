@@ -25,19 +25,19 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-     volumes:
+    volumes:
       - ./mongo-data:/data/db
     
   jupyter:
     image: "jupyter/datascience-notebook:${JUPYTER_VERSION}"
     container_name: intertwino_jupyter
-    env_file:
-      - ./.env
-    environment:
-      JUPYTER_ENABLE_LAB: "yes"
     ports:
       - "${JUPYTER_PORT}:8888"
     restart: always  
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+    env_file:
+      - ./.env
     volumes:
       - ./work:/home/jovyan/work
       
