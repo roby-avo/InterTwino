@@ -179,7 +179,8 @@ routes_list_fields = api.model('RouteList', {
         fields.Nested(routes_fields), 
         example=[
             {"origin": [42.68843, 23.37989], "destination": [42.70211, 23.33198]},
-            {"origin": [42.68840, 23.37990], "destination": [42.70212, 23.33190]}
+            {"origin": [42.68840, 23.37990], "destination": [42.70212, 23.33190]},
+            {"origin": [42.68840, 23.37990], "destination": 'дг №7 "детелина"'}
         ])
 })
 
@@ -215,7 +216,8 @@ class Routing(Resource):
     @api.doc(
         params={
             "pointA": "Geocoords of point A (use oder lat,lng separeted to comma for e.g. 42.68843,23.37989)",
-            "pointB": "Geocoords of point B (use order lat,lng separated to comma for e.g.  42.70211,23.33198)"
+            "pointB": """Geocoords of point B or Point of Interest 
+            (use order lat,lng separated to comma for e.g.  42.70211,23.33198 or дг №7 "детелина")"""
         },
         description='Compute path from point A to point B in pedestrian mode'
     )
@@ -265,6 +267,12 @@ class Routing(Resource):
             return {"Error": "Invalid Json"}, 400
 
         for route in routes:
+            if type(route["destination"]) == str:
+                school = school_cache.find_one({"name": route["destination"].lower()})
+                if school is None:
+                    return {"Error": "Invalid Point of Interest name"}, 400   
+                else:
+                    route["destination"] = school["coords"].split(",")
             origin, destination = (",".join([str(p) for p in route["origin"]]), ",".join([str(p) for p in route["destination"]]))
             result = get_route_data(origin, destination)
             if result is None:
