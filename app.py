@@ -1,3 +1,4 @@
+import sched
 from flask import Flask, request
 from flask_restx import Api, Resource, reqparse, fields
 from herepy import GeocoderApi
@@ -21,6 +22,7 @@ client = MongoClient(MONGO_HOST,
                      authMechanism='SCRAM-SHA-256')
 address_cache = client[MONGO_DBNAME].address            
 route_cache = client[MONGO_DBNAME].route                  
+school_cache = client[MONGO_DBNAME].school                  
 
 
 
@@ -225,6 +227,14 @@ class Routing(Resource):
         args = parser.parse_args()
         pointA = args["pointA"]
         pointB = args["pointB"]
+        try:
+            [float(i) for i in pointB.split(",")]
+        except:
+            school = school_cache.find_one({"name": pointB.lower()})
+            if school is None:
+                return {"Error": "Invalid Point of Interest name"}, 400   
+            else:
+                pointB = school["coords"]    
         token = args["token"]
         if not validate_token(token):
             return {"Error": "Invalid Token"}, 403
