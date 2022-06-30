@@ -232,7 +232,7 @@ class Routing(Resource):
         try:
             [float(i) for i in pointB.split(",")]
         except:
-            school = poi_cache.find_one({"name": pointB.lower()})
+            school = poi_cache.find_one({"name": pointB.lower().strip().replace('"', '')})
             if school is None:
                 return {"Error": "Invalid Point of Interest name"}, 400   
             else:
@@ -268,7 +268,7 @@ class Routing(Resource):
 
         for route in routes:
             if type(route["destination"]) == str:
-                school = poi_cache.find_one({"name": route["destination"].lower()})
+                school = poi_cache.find_one({"name": route["destination"].lower().strip().replace('"', '')})
                 if school is None:
                     return {"Error": "Invalid Point of Interest name"}, 400   
                 else:
