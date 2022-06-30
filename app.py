@@ -22,7 +22,7 @@ client = MongoClient(MONGO_HOST,
                      authMechanism='SCRAM-SHA-256')
 address_cache = client[MONGO_DBNAME].address            
 route_cache = client[MONGO_DBNAME].route                  
-school_cache = client[MONGO_DBNAME].school                  
+poi_cache = client[MONGO_DBNAME].poi                  
 
 
 
@@ -200,7 +200,7 @@ class Routing(Resource):
             "transportMode": "pedestrian", 
             "origin": origin, 
             "destination": destination, 
-            "return": "summary", 
+            "return": "summary,polyline", 
             "apiKey": HERE_API_KEY
         }
         result = requests.get("https://router.hereapi.com/v8/routes", params=query)
@@ -215,9 +215,9 @@ class Routing(Resource):
 
     @api.doc(
         params={
-            "pointA": "Geocoords of point A (use oder lat,lng separeted to comma for e.g. 42.68843,23.37989)",
+            "pointA": "Geocoords of point A (use oder lat,lng separeted to comma for e.g. 42.69357,23.36488)",
             "pointB": """Geocoords of point B or Point of Interest 
-            (use order lat,lng separated to comma for e.g.  42.70211,23.33198 or дг №7 "детелина")"""
+            (use order lat,lng separated to comma for e.g. 42.70214,23.37594 or ДГ №20 "Жасминов парк")"""
         },
         description='Compute path from point A to point B in pedestrian mode'
     )
@@ -232,7 +232,7 @@ class Routing(Resource):
         try:
             [float(i) for i in pointB.split(",")]
         except:
-            school = school_cache.find_one({"name": pointB.lower()})
+            school = poi_cache.find_one({"name": pointB.lower()})
             if school is None:
                 return {"Error": "Invalid Point of Interest name"}, 400   
             else:
@@ -268,7 +268,7 @@ class Routing(Resource):
 
         for route in routes:
             if type(route["destination"]) == str:
-                school = school_cache.find_one({"name": route["destination"].lower()})
+                school = poi_cache.find_one({"name": route["destination"].lower()})
                 if school is None:
                     return {"Error": "Invalid Point of Interest name"}, 400   
                 else:
