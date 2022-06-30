@@ -51,6 +51,7 @@ def get_route_data(origin, destination):
 
 def get_poi(name):
     name = name.lower().replace('"', '')
+    name = name.replace('“', '')
     name = " ".join(name.split())
     result = poi_cache.find_one({"name": name})
     return result
