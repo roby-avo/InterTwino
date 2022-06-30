@@ -1,4 +1,5 @@
 import sched
+from unittest import result
 from flask import Flask, request
 from flask_restx import Api, Resource, reqparse, fields
 from herepy import GeocoderApi
@@ -39,15 +40,19 @@ api = Api(app)
 def validate_token(token):
     return token == API_TOKEN
     
-
 def get_address_data(address):
     address = address.lower()
     result = address_cache.find_one({"address": address})
     return result
 
-
 def get_route_data(origin, destination):
     result = route_cache.find_one({"origin": origin, "destination": destination})
+    return result
+
+def get_poi(name):
+    name = name.lower().replace('"', '')
+    name = " ".join(name.split())
+    result = poi_cache.find_one({"name": name})
     return result
 
 
@@ -232,7 +237,7 @@ class Routing(Resource):
         try:
             [float(i) for i in pointB.split(",")]
         except:
-            school = poi_cache.find_one({"name": pointB.lower().strip().replace('"', '')})
+            school = get_poi(pointB)
             if school is None:
                 return {"Error": "Invalid Point of Interest name"}, 400   
             else:
@@ -268,7 +273,7 @@ class Routing(Resource):
 
         for route in routes:
             if type(route["destination"]) == str:
-                school = poi_cache.find_one({"name": route["destination"].lower().strip().replace('"', '')})
+                school = get_poi(route["destination"])
                 if school is None:
                     return {"Error": "Invalid Point of Interest name"}, 400   
                 else:
