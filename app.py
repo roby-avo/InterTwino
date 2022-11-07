@@ -1,5 +1,3 @@
-import sched
-from unittest import result
 from flask import Flask, request
 from flask_restx import Api, Resource, reqparse, fields
 from herepy import GeocoderApi
@@ -7,6 +5,9 @@ from pymongo import MongoClient
 import os
 import json
 import requests
+import folium
+import flexpolyline as fp
+import pandas as pd
 
 API_TOKEN = os.environ["API_TOKEN"]
 HERE_API_KEY = os.environ["HERE_API_KEY"]
@@ -289,6 +290,31 @@ class Routing(Resource):
             route["routes"] = result["routes"]
        
         return routes
+
+
+@app.route('/map')
+def map():
+    polyline = request.args.get('polyline')
+    try:
+        coordinates = fp.decode(polyline)
+        coordinates = [[c[1], c[0]] for c in coordinates]
+        mls = coordinates
+        points = [(i[1], i[0]) for i in mls]
+        m = folium.Map()
+        # add marker for the start and ending points
+        for point in [points[0], points[-1]]:
+            folium.Marker(point).add_to(m)
+        # add the lines
+        folium.PolyLine(points, weight=5, opacity=1).add_to(m)
+        # create optimal zoom
+        df = pd.DataFrame(mls).rename(columns={0:'Lon', 1:'Lat'})[['Lat', 'Lon']]
+        sw = df[['Lat', 'Lon']].min().values.tolist()
+        ne = df[['Lat', 'Lon']].max().values.tolist()
+        m.fit_bounds([sw, ne])
+    except Exception as e:
+        return {"Error": "Invalid Polyline"}
+    return m._repr_html_()
+
 
 if __name__ == '__main__':
     app.run(debug=True)

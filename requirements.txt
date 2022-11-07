@@ -1,3 +1,6 @@
 flask-restx
 herepy
 pymongo
+folium
+flexpolyline
+pandas
