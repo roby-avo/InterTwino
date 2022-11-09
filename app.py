@@ -301,9 +301,11 @@ def map():
         mls = coordinates
         points = [(i[1], i[0]) for i in mls]
         m = folium.Map()
+        
         # add marker for the start and ending points
-        for point in [points[0], points[-1]]:
-            folium.Marker(point).add_to(m)
+        folium.Marker(points[0], icon=folium.Icon(color="red",icon="map-pin", prefix='fa')).add_to(m) # start point
+        folium.Marker(points[-1], icon=folium.Icon(color="blue",icon="map-marker", prefix='fa')).add_to(m) # end point
+        
         # add the lines
         folium.PolyLine(points, weight=5, opacity=1).add_to(m)
         # create optimal zoom
