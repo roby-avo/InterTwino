@@ -27,6 +27,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
       - ./mongo-data:/data/db
+      - ~/my-data:/my-data
     
   jupyter:
     image: "jupyter/datascience-notebook:${JUPYTER_VERSION}"
@@ -40,4 +41,5 @@ services:
       - ./.env
     volumes:
       - ./work:/home/jovyan/work
+      - ~/my-data:/home/jovyan/work/my-data
       
